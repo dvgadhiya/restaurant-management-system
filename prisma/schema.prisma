@@ -1,0 +1,278 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders    Order[]
+  payments  Payment[]
+}
+
+model UserRequest {
+  id        String            @id @default(cuid())
+  email     String            @unique
+  password  String
+  name      String
+  role      UserRole
+  phone     String?
+  status    UserRequestStatus @default(PENDING)
+  rejectionReason String?
+  reviewedBy String?
+  reviewedAt DateTime?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+enum UserRole {
+  MANAGER
+  WAITER
+  CHEF
+  CASHIER
+}
+
+enum UserRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// Menu Management
+model Category {
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  sortOrder   Int        @default(0)
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  menuItems      MenuItem[]
+  inventoryItems InventoryItem[]
+}
+
+model MenuItem {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  image       String?
+  categoryId  String
+  isAvailable Boolean     @default(true)
+  isSoldOut   Boolean     @default(false)
+  prepTime    Int?        // in minutes
+  isVeg       Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  category    Category    @relation(fields: [categoryId], references: [id])
+  orderItems  OrderItem[]
+  ingredients MenuItemIngredient[]
+}
+
+// Inventory Management (Raw Materials)
+model InventoryItem {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  categoryId   String
+  currentStock Float    @default(0)
+  minStock     Float    @default(5)
+  unit         String   @default("kg")
+  costPerUnit  Float?   // cost per unit for tracking
+  lastUpdated  DateTime @updatedAt
+  createdAt    DateTime @default(now())
+
+  category     Category @relation(fields: [categoryId], references: [id])
+  menuItems    MenuItemIngredient[]
+}
+
+// Junction table for Many-to-Many relationship between MenuItem and InventoryItem
+model MenuItemIngredient {
+  id             String        @id @default(cuid())
+  menuItemId     String
+  inventoryItemId String
+  quantityNeeded Float         // quantity of ingredient needed per dish
+  createdAt      DateTime      @default(now())
+
+  menuItem       MenuItem      @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  inventoryItem  InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+
+  @@unique([menuItemId, inventoryItemId])
+}
+
+// Table Management
+model Table {
+  id          String      @id @default(cuid())
+  tableNumber Int         @unique
+  capacity    Int
+  status      TableStatus @default(FREE)
+  positionX   Float?      // for visual map positioning
+  positionY   Float?
+  shape       TableShape  @default(SQUARE)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  orders      Order[]
+  reservations Reservation[]
+}
+
+enum TableStatus {
+  FREE
+  OCCUPIED
+  RESERVED
+  CLEANING
+}
+
+enum TableShape {
+  SQUARE
+  ROUND
+  RECTANGULAR
+}
+
+// Reservation System
+model Reservation {
+  id             String            @id @default(cuid())
+  tableId        String
+  customerName   String
+  customerPhone  String
+  numberOfGuests Int
+  reservationDate DateTime
+  reservationTime String
+  status         ReservationStatus @default(PENDING)
+  notes          String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  table          Table             @relation(fields: [tableId], references: [id])
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  SEATED
+  CANCELLED
+  COMPLETED
+}
+
+// Order Management
+model Order {
+  id          String      @id @default(cuid())
+  orderNumber String      @unique @default(cuid())
+  tableId     String
+  waiterId    String
+  status      OrderStatus @default(NEW)
+  totalAmount Float       @default(0)
+  discount    Float       @default(0)
+  finalAmount Float       @default(0)
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  table       Table       @relation(fields: [tableId], references: [id])
+  waiter      User        @relation(fields: [waiterId], references: [id])
+  orderItems  OrderItem[]
+  payment     Payment?
+}
+
+enum OrderStatus {
+  NEW
+  IN_PROGRESS
+  READY
+  SERVED
+  COMPLETED
+  CANCELLED
+}
+
+model OrderItem {
+  id         String   @id @default(cuid())
+  orderId    String
+  menuItemId String
+  quantity   Int
+  price      Float
+  subtotal   Float
+  notes      String?  // special instructions like "no onions"
+  status     OrderItemStatus @default(PENDING)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+}
+
+enum OrderItemStatus {
+  PENDING
+  PREPARING
+  READY
+  SERVED
+}
+
+// Payment Management
+model Payment {
+  id            String        @id @default(cuid())
+  orderId       String        @unique
+  amount        Float
+  paymentMethod PaymentMethod
+  paymentStatus PaymentStatus @default(PENDING)
+  transactionId String?
+  cashierId     String
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  order         Order         @relation(fields: [orderId], references: [id])
+  cashier       User          @relation(fields: [cashierId], references: [id])
+  splits        PaymentSplit[]
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  UPI
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model PaymentSplit {
+  id            String        @id @default(cuid())
+  paymentId     String
+  amount        Float
+  paymentMethod PaymentMethod
+  paidBy        String?       // customer name or identifier
+  createdAt     DateTime      @default(now())
+
+  payment       Payment       @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+}
+
+// Analytics and Reporting
+model DailySales {
+  id            String   @id @default(cuid())
+  date          DateTime @unique
+  totalOrders   Int      @default(0)
+  totalRevenue  Float    @default(0)
+  totalDiscount Float    @default(0)
+  netRevenue    Float    @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
