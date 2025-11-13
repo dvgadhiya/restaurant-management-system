@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth"
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await auth()
@@ -12,7 +12,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { id } = await params
+    const { id } = context.params
     const body = await request.json()
 
     const menuItem = await prisma.menuItem.update({
@@ -29,7 +29,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await auth()
@@ -37,7 +37,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { id } = await params
+    const { id } = context.params
 
     await prisma.menuItem.delete({
       where: { id },

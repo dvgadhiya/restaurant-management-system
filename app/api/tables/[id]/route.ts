@@ -5,7 +5,7 @@ import { auth } from "@/lib/auth"
 // GET single table
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await auth()
@@ -13,7 +13,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { id } = await params
+    const { id } = context.params
 
     const table = await prisma.table.findUnique({
       where: { id },
@@ -45,7 +45,7 @@ export async function GET(
 // PATCH update table
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await auth()
@@ -53,7 +53,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { id } = await params
+    const { id } = context.params
     const body = await request.json()
 
     const table = await prisma.table.update({
@@ -71,7 +71,7 @@ export async function PATCH(
 // DELETE table
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await auth()
@@ -79,7 +79,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { id } = await params
+    const { id } = context.params
 
     // Check if table has active orders
     const table = await prisma.table.findUnique({
