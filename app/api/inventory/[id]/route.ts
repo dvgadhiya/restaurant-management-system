@@ -5,7 +5,7 @@ import { auth } from "@/lib/auth"
 // GET single inventory item
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await auth()
@@ -14,7 +14,7 @@ export async function GET(
     }
 
     const inventoryItem = await prisma.inventoryItem.findUnique({
-      where: { id: params.id },
+      where: { id: context.params.id },
       include: {
         category: true
       }
@@ -40,7 +40,7 @@ export async function GET(
 // PATCH update inventory item
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await auth()
@@ -70,7 +70,7 @@ export async function PATCH(
     if (costPerUnit !== undefined) updateData.costPerUnit = costPerUnit ? parseFloat(costPerUnit) : null
 
     const inventoryItem = await prisma.inventoryItem.update({
-      where: { id: params.id },
+      where: { id: context.params.id },
       data: updateData,
       include: {
         category: true
@@ -90,7 +90,7 @@ export async function PATCH(
 // DELETE inventory item
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await auth()
@@ -99,7 +99,7 @@ export async function DELETE(
     }
 
     await prisma.inventoryItem.delete({
-      where: { id: params.id }
+      where: { id: context.params.id }
     })
 
     return NextResponse.json({ message: "Inventory item deleted" })
