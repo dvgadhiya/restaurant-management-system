@@ -1,3 +1,4 @@
+// app/waiter/table/[tableId]/page.tsx
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
@@ -6,14 +7,14 @@ import { OrderInterface } from "@/components/waiter/order-interface"
 export default async function TableOrderPage({
   params,
 }: {
-  params: { tableId: string }
+  params: Promise<{ tableId: string }>
 }) {
   const session = await auth()
   if (!session?.user) {
     redirect("/login")
   }
 
-  const { tableId } = params
+  const { tableId } = await params
 
   const [table, menuItems, categories, activeOrder] = await Promise.all([
     prisma.table.findUnique({

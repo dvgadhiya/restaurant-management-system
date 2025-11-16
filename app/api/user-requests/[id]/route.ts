@@ -1,3 +1,5 @@
+// ============================================
+// app/api/user-requests/[id]/route.ts
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -5,7 +7,7 @@ import { prisma } from "@/lib/prisma"
 // PATCH - Approve or reject user request
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -14,11 +16,12 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { id } = await context.params
     const body = await request.json()
     const { action, rejectionReason } = body // action: "APPROVE" or "REJECT"
 
     const userRequest = await prisma.userRequest.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!userRequest) {
@@ -48,7 +51,7 @@ export async function PATCH(
 
       // Update request status
       await prisma.userRequest.update({
-        where: { id: params.id },
+        where: { id },
         data: {
           status: "APPROVED",
           reviewedBy: session.user.id,
@@ -59,7 +62,7 @@ export async function PATCH(
       return NextResponse.json({ message: "User approved and account created" })
     } else if (action === "REJECT") {
       await prisma.userRequest.update({
-        where: { id: params.id },
+        where: { id },
         data: {
           status: "REJECTED",
           rejectionReason,
@@ -87,7 +90,7 @@ export async function PATCH(
 // DELETE - Remove a user request
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -96,8 +99,10 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { id } = await context.params
+
     await prisma.userRequest.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ message: "User request deleted" })

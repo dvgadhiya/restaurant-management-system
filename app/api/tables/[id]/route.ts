@@ -1,3 +1,4 @@
+// app/api/tables/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
@@ -5,7 +6,7 @@ import { auth } from "@/lib/auth"
 // GET single table
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -13,7 +14,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { id } = context.params
+    const { id } = await context.params
 
     const table = await prisma.table.findUnique({
       where: { id },
@@ -45,7 +46,7 @@ export async function GET(
 // PATCH update table
 export async function PATCH(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -53,7 +54,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { id } = context.params
+    const { id } = await context.params
     const body = await request.json()
 
     const table = await prisma.table.update({
@@ -71,7 +72,7 @@ export async function PATCH(
 // DELETE table
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -79,7 +80,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { id } = context.params
+    const { id } = await context.params
 
     // Check if table has active orders
     const table = await prisma.table.findUnique({

@@ -1,3 +1,4 @@
+// components/kitchen/kitchen-display.tsx
 "use client"
 
 import { useState, useEffect } from "react"
@@ -43,7 +44,6 @@ export function KitchenDisplay({ orders: initialOrders }: KitchenDisplayProps) {
   const router = useRouter()
   const [orders, setOrders] = useState(initialOrders)
   const [inventoryItems, setInventoryItems] = useState<any[]>([])
-  const [consumptionLog, setConsumptionLog] = useState<{orderId: string, items: any[]}[]>([])
 
   // Auto-refresh every 10 seconds
   useEffect(() => {
@@ -75,8 +75,6 @@ export function KitchenDisplay({ orders: initialOrders }: KitchenDisplayProps) {
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
-      const order = orders.find(o => o.id === orderId)
-      
       const response = await fetch(`/api/orders/${orderId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -85,71 +83,19 @@ export function KitchenDisplay({ orders: initialOrders }: KitchenDisplayProps) {
 
       if (!response.ok) throw new Error("Failed to update order")
 
-      // If marking as READY, consume inventory stock
-      if (newStatus === "READY" && order) {
-        const failedItems: string[] = []
-        const consumedItems: any[] = []
-        
-        for (const item of order.orderItems) {
-          try {
-            const res = await fetch("/api/inventory/consume", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                menuItemId: item.menuItem.id,
-                quantity: item.quantity
-              })
-            })
-            
-            if (!res.ok) {
-              if (res.status === 404) {
-                // No inventory tracking for this item - that's okay
-                console.log("No inventory tracking for", item.menuItem.name)
-              } else {
-                failedItems.push(item.menuItem.name)
-              }
-            } else {
-              const data = await res.json()
-              consumedItems.push({
-                name: item.menuItem.name,
-                consumed: data.consumed,
-                unit: data.unit,
-                remaining: data.currentStock
-              })
-              
-              if (data.isLowStock) {
-                toast.warning(`${item.menuItem.name} is now low on stock! Only ${data.currentStock} ${data.unit} remaining`)
-              }
-            }
-          } catch (err) {
-            console.error("Failed to consume stock for", item.menuItem.name, err)
-            failedItems.push(item.menuItem.name)
-          }
-        }
-        
-        // Add to consumption log
-        if (consumedItems.length > 0) {
-          setConsumptionLog(prev => [{orderId: order.id, items: consumedItems}, ...prev.slice(0, 4)])
-        }
-        
-        if (failedItems.length > 0) {
-          toast.error(`Failed to update stock for: ${failedItems.join(", ")}`)
-        }
-        
-        // Refresh inventory after consumption
-        const invRes = await fetch("/api/inventory")
-        if (invRes.ok) {
-          const invData = await invRes.json()
-          setInventoryItems(invData)
-        }
-      }
-
       setOrders(orders.map(order => 
         order.id === orderId ? { ...order, status: newStatus } : order
       ))
 
       if (newStatus === "READY") {
-        toast.success("Order marked as ready and stock updated!")
+        toast.success("Order marked as ready!")
+        
+        // Refresh inventory after order completion
+        const invRes = await fetch("/api/inventory")
+        if (invRes.ok) {
+          const invData = await invRes.json()
+          setInventoryItems(invData)
+        }
       } else {
         toast.success("Order status updated")
       }
@@ -228,40 +174,6 @@ export function KitchenDisplay({ orders: initialOrders }: KitchenDisplayProps) {
                   </div>
                   <div className="text-muted-foreground text-xs">
                     Min: {item.minStock} {item.unit}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Recent Consumption Log */}
-      {consumptionLog.length > 0 && (
-        <Card className="bg-blue-50 border-blue-300">
-          <CardHeader>
-            <CardTitle className="text-blue-700 flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              Recent Inventory Consumption
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {consumptionLog.map((log, idx) => (
-                <div key={idx} className="bg-white p-3 rounded-lg border">
-                  <div className="text-muted-foreground text-sm mb-2">Order completed just now</div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {log.items.map((item: any, itemIdx: number) => (
-                      <div key={itemIdx} className="text-sm">
-                        <div className="font-medium">{item.name}</div>
-                        <div className="text-blue-600">
-                          Used: {item.consumed} {item.unit}
-                        </div>
-                        <div className="text-muted-foreground text-xs">
-                          Remaining: {item.remaining} {item.unit}
-                        </div>
-                      </div>
-                    ))}
                   </div>
                 </div>
               ))}

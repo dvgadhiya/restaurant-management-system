@@ -1,3 +1,4 @@
+// app/api/inventory/consume/route.ts
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
@@ -11,26 +12,26 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { menuItemId, quantity } = body
+    const { inventoryItemId, quantity } = body
 
-    if (!menuItemId || !quantity) {
+    if (!inventoryItemId || !quantity) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       )
     }
 
-    // Find inventory item for this menu item
+    // Find inventory item
     const inventoryItem = await prisma.inventoryItem.findUnique({
-      where: { menuItemId },
+      where: { id: inventoryItemId },
       include: {
-        menuItem: true
+        category: true
       }
     })
 
     if (!inventoryItem) {
       return NextResponse.json(
-        { error: "No inventory tracking for this item" },
+        { error: "Inventory item not found" },
         { status: 404 }
       )
     }
@@ -45,11 +46,7 @@ export async function POST(request: NextRequest) {
         currentStock: newStock
       },
       include: {
-        menuItem: {
-          include: {
-            category: true
-          }
-        }
+        category: true
       }
     })
 

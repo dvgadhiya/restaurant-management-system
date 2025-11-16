@@ -1,3 +1,4 @@
+// app/api/inventory/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
@@ -5,7 +6,7 @@ import { auth } from "@/lib/auth"
 // GET single inventory item
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -13,8 +14,10 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { id } = await context.params
+
     const inventoryItem = await prisma.inventoryItem.findUnique({
-      where: { id: context.params.id },
+      where: { id },
       include: {
         category: true
       }
@@ -40,7 +43,7 @@ export async function GET(
 // PATCH update inventory item
 export async function PATCH(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -48,6 +51,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { id } = await context.params
     const body = await request.json()
     const { name, description, categoryId, currentStock, minStock, unit, costPerUnit } = body
 
@@ -70,7 +74,7 @@ export async function PATCH(
     if (costPerUnit !== undefined) updateData.costPerUnit = costPerUnit ? parseFloat(costPerUnit) : null
 
     const inventoryItem = await prisma.inventoryItem.update({
-      where: { id: context.params.id },
+      where: { id },
       data: updateData,
       include: {
         category: true
@@ -90,7 +94,7 @@ export async function PATCH(
 // DELETE inventory item
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -98,8 +102,10 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { id } = await context.params
+
     await prisma.inventoryItem.delete({
-      where: { id: context.params.id }
+      where: { id }
     })
 
     return NextResponse.json({ message: "Inventory item deleted" })
