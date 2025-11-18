@@ -115,7 +115,7 @@ export default async function ReportsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${(todaySales._sum.finalAmount || 0).toFixed(2)}
+                  {(todaySales._sum.finalAmount || 0).toFixed(2)}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {todaySales._count} orders completed
@@ -130,7 +130,7 @@ export default async function ReportsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${(weeklySales._sum.finalAmount || 0).toFixed(2)}
+                  {(weeklySales._sum.finalAmount || 0).toFixed(2)}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {weeklySales._count} orders (last 7 days)
@@ -145,7 +145,7 @@ export default async function ReportsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${(monthlySales._sum.finalAmount || 0).toFixed(2)}
+                  {(monthlySales._sum.finalAmount || 0).toFixed(2)}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {monthlySales._count} orders (last 30 days)
@@ -163,7 +163,7 @@ export default async function ReportsPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Average Order Value (Today)</span>
                   <span className="text-2xl font-bold">
-                    ${todaySales._count > 0 
+                    {todaySales._count > 0 
                       ? ((todaySales._sum.finalAmount || 0) / todaySales._count).toFixed(2)
                       : "0.00"
                     }
@@ -172,7 +172,7 @@ export default async function ReportsPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Average Order Value (Week)</span>
                   <span className="text-2xl font-bold">
-                    ${weeklySales._count > 0
+                    {weeklySales._count > 0
                       ? ((weeklySales._sum.finalAmount || 0) / weeklySales._count).toFixed(2)
                       : "0.00"
                     }
@@ -246,7 +246,7 @@ export default async function ReportsPage() {
                       <TableCell>Table {order.table.tableNumber}</TableCell>
                       <TableCell>{order.waiter.name}</TableCell>
                       <TableCell className="font-bold">
-                        ${order.finalAmount.toFixed(2)}
+                        {order.finalAmount.toFixed(2)}
                       </TableCell>
                       <TableCell>{order.payment?.paymentMethod || "N/A"}</TableCell>
                       <TableCell>

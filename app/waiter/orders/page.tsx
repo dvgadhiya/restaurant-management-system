@@ -113,14 +113,14 @@ export default async function WaiterOrdersPage() {
                         {item.quantity}x {item.menuItem.name}
                       </span>
                       <span className="text-muted-foreground">
-                        ${item.subtotal.toFixed(2)}
+                        {item.subtotal.toFixed(2)}
                       </span>
                     </div>
                   ))}
                   <Separator className="my-2" />
                   <div className="flex justify-between font-bold">
                     <span>Total:</span>
-                    <span>${order.finalAmount.toFixed(2)}</span>
+                    <span>{order.finalAmount.toFixed(2)}</span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
                     Ordered: {new Date(order.createdAt).toLocaleTimeString()}
@@ -149,7 +149,7 @@ export default async function WaiterOrdersPage() {
                       Waiter: {order.waiter.name}
                     </p>
                   </div>
-                  <Badge className={`${getStatusColor(order.status)} text-white`}>
+                  <Badge className={`{getStatusColor(order.status)} text-white`}>
                     {order.status}
                   </Badge>
                 </div>
@@ -160,7 +160,7 @@ export default async function WaiterOrdersPage() {
                     {order.orderItems.length} items
                   </p>
                   <p className="font-bold text-lg">
-                    ${order.finalAmount.toFixed(2)}
+                    {order.finalAmount.toFixed(2)}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {new Date(order.createdAt).toLocaleTimeString()}

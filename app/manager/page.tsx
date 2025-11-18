@@ -66,7 +66,7 @@ export default async function ManagerDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${(todayRevenue._sum.finalAmount || 0).toFixed(2)}
+              {(todayRevenue._sum.finalAmount || 0).toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground">
               {todayOrders} orders today
@@ -81,7 +81,7 @@ export default async function ManagerDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${(totalRevenue._sum.finalAmount || 0).toFixed(2)}
+              {(totalRevenue._sum.finalAmount || 0).toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground">
               {totalOrders} total orders
@@ -140,7 +140,7 @@ export default async function ManagerDashboard() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">${order.finalAmount.toFixed(2)}</p>
+                    <p className="font-medium">{order.finalAmount.toFixed(2)}</p>
                     <p className="text-sm text-muted-foreground">{order.status}</p>
                   </div>
                 </div>
