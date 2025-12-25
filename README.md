@@ -241,20 +241,4 @@ Before deploying to production:
 9. **CDN**: Use CDN for static assets
 10. **Caching**: Implement Redis caching
 
-## 🤝 Contributing
 
-This is a university project for Software Engineering.
-
-## 📄 License
-
-Educational project - MIT License
-
-## 👥 Team
-
-Software Engineering Project
-
----
-
-**Budget**: ₹1,50,000
-**Timeline**: 5-month development window
-**Status**: ✅ Complete and functional
